@@ -1,20 +1,58 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:wordnest/screens/contacts.dart';
 import 'package:wordnest/screens/cards.dart';
 import 'package:wordnest/screens/others.dart';
+import 'package:wordnest/services/card_sync_service.dart';
+import 'package:wordnest/screens/login_screen.dart';
+import 'package:logging/logging.dart';
+import 'package:wordnest/services/app_initializer.dart';
 
 void main() {
+  //_setupLogging();
   runApp(const MyApp());
+}
+
+void _setupLogging() {
+  Logger.root.level = Level.ALL;
+
+  Logger.root.onRecord.listen((LogRecord rec) {
+    Logger.root.info(
+        '${rec.level.name}: ${rec.time}: ${rec.loggerName}: ${rec.message}');
+  });
 }
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-  // This widget is the root of your application.
+  Future<bool> _isFirstLaunch() async {
+    final prefs = await SharedPreferences.getInstance();
+    final isFirstLaunch = prefs.getBool('isFirstLaunch') ?? true;
+
+    if (isFirstLaunch) {
+      // Set 'isFirstLaunch' to false after the first launch
+      await prefs.setBool('isFirstLaunch', false);
+    }
+    return isFirstLaunch;
+  }
+
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
-      home: MyHomePage(),
+    return MaterialApp(
+      home: FutureBuilder<bool>(
+        future: _isFirstLaunch(),
+        builder: (context, snapshot) {
+          if (snapshot.hasError) {
+            return const Center(child: Text("Error occurred"));
+          } else if (snapshot.hasData && snapshot.data == true) {
+            // If it's the first launch, navigate to the LoginScreen
+            return const LoginScreen();
+          } else {
+            // If it's not the first launch, navigate directly to MyHomePage
+            return const MyHomePage();
+          }
+        },
+      ),
     );
   }
 }
@@ -22,21 +60,13 @@ class MyApp extends StatelessWidget {
 class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key});
 
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
   @override
   State<MyHomePage> createState() => _MyHomePageState();
 }
 
 class _MyHomePageState extends State<MyHomePage> {
   late int _currentIndex;
+  final CardSyncService cardSyncService = CardSyncService();
 
   List<Widget> body = [
     const CardTab(),
@@ -46,9 +76,14 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   void initState() {
-    print('initState of MyHomeState');
     super.initState();
+    print('initState of MyHomePage');
     _currentIndex = 0;
+
+    // Schedule the method to run after the first frame
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      AppInitializer.runAfterStart(context);
+    });
   }
 
   @override
