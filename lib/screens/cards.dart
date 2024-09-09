@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:wordnest/screens/card_form.dart';
 import 'package:wordnest/design/colors.dart';
+import 'package:wordnest/database/app_database.dart';
+import 'package:wordnest/assets/constants.dart' as constants;
 
 class CardTab extends StatefulWidget {
   const CardTab({super.key});
@@ -11,23 +13,40 @@ class CardTab extends StatefulWidget {
 }
 
 class CardTabState extends State<CardTab> {
+  late AppDatabase db;
   bool _isFrontSide = true;
-  late String _frontText;
-  late String _backText;
-  late String _exampleText;
+
+  int _cardId = 0;
+  String _frontText = "";
+  String _backText = "";
+  String _exampleText = "";
 
   @override
   void initState() {
-    _frontText = "Start front: ";
-    _backText = "Start back: ";
-    _exampleText = "Start example: ";
+    super.initState();
+    db = AppDatabase.instance;
+    _fetchCardData();
   }
 
-  void _nextCard() {
+  Future<void> _fetchCardData() async {
+    final card = await db.getCardToLearn();
+
     setState(() {
-      _frontText = '$_frontText, New text';
-      _backText = '$_backText, New text';
-      _exampleText = '$_exampleText, New text';
+      _cardId = card.id!;
+      _frontText = card.front!;
+      _backText = card.back!;
+      _exampleText = card.example!;
+    });
+  }
+
+  Future<void> _nextCard(int status) async {
+    var updatedCard = await db.getCard(_cardId);
+    updatedCard.status = status;
+    updatedCard.editDateTime = DateTime.now();
+    await db.updateCardFromForm(updatedCard);
+
+    setState(() {
+      _fetchCardData();
     });
   }
 
@@ -131,7 +150,7 @@ class CardTabState extends State<CardTab> {
                         child: TextButton(
                             onPressed: () {
                               print("onPressed next");
-                              _nextCard();
+                              _nextCard(constants.cardIsNotLearned);
                             },
                             child: const Icon(Icons.navigate_next)),
                       ),
@@ -139,7 +158,7 @@ class CardTabState extends State<CardTab> {
                         child: TextButton(
                             onPressed: () {
                               print("onPressed done");
-                              _nextCard();
+                              _nextCard(constants.cardIsLearned);
                             },
                             child: const Icon(Icons.done)),
                       ),

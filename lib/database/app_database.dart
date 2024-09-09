@@ -170,6 +170,7 @@ class AppDatabase {
   }
 
   Future<int> updateCardFromForm(CardEntity card) async {
+    print('updateCardFromForm, cardId = ${card.id}');
     final db = await instance.database;
     return await db.update(
       constants.cardTableName,
