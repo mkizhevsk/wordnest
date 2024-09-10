@@ -144,7 +144,7 @@ class AppDatabase {
 
     final result = await db.query(
       constants.cardTableName,
-      where: '${constants.deckIdField} = ?',
+      where: '${constants.cardDeckIdField} = ?',
       whereArgs: [deckId],
       orderBy: '${constants.cardEditDateTimeField} DESC',
     );
@@ -154,9 +154,9 @@ class AppDatabase {
   }
 
   Future<CardEntity> getCardToLearn(int deckId) async {
-    print('getCardToLearn');
+    print('AppDatabase getCardToLearn for deckId $deckId');
     var cards = await getCardsByDeck(deckId);
-    print('cards to learn: ${cards.length}');
+    print('cards in deck: ${cards.length}');
     // for (var card in cards) {
     //   print(card);
     // }

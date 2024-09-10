@@ -22,6 +22,12 @@ class CardTabState extends State<CardTab> {
   String _backText = "";
   String _exampleText = "";
 
+  // Test deck data (IDs and names)
+  List<Map<String, dynamic>> _decks = [
+    {"id": 1, "name": "Deck 1"}, // Test deck 1
+    {"id": 2, "name": "Deck 2"}, // Test deck 2
+  ];
+
   @override
   void initState() {
     super.initState();
@@ -30,6 +36,7 @@ class CardTabState extends State<CardTab> {
   }
 
   Future<void> _fetchCardData() async {
+    print('CardTabState _fetchCardData() for deckId $_deckId');
     final card = await db.getCardToLearn(_deckId);
 
     setState(() {
@@ -109,6 +116,39 @@ class CardTabState extends State<CardTab> {
                 padding: EdgeInsets.all(16.0),
                 child: Center(
                   child: SearchRow(),
+                ),
+              ),
+              // Dropdown and button row
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: DropdownButton<int>(
+                        value: _deckId,
+                        items: _decks.map((deck) {
+                          return DropdownMenuItem<int>(
+                            value: deck["id"],
+                            child: Text(deck["name"]),
+                          );
+                        }).toList(),
+                        onChanged: (int? newValue) {
+                          setState(() {
+                            _deckId = newValue!;
+                          });
+                        },
+                      ),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.add),
+                      tooltip: 'Create deck',
+                      onPressed: () {
+                        // Handle create deck logic
+                        print('Create new deck');
+                        // You can navigate to a new screen or show a dialog to create a deck
+                      },
+                    ),
+                  ],
                 ),
               ),
               SizedBox(
