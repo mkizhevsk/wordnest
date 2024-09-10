@@ -16,6 +16,7 @@ class CardTabState extends State<CardTab> {
   late AppDatabase db;
   bool _isFrontSide = true;
 
+  int _deckId = 1;
   int _cardId = 0;
   String _frontText = "";
   String _backText = "";
@@ -29,7 +30,7 @@ class CardTabState extends State<CardTab> {
   }
 
   Future<void> _fetchCardData() async {
-    final card = await db.getCardToLearn();
+    final card = await db.getCardToLearn(_deckId);
 
     setState(() {
       _cardId = card.id!;

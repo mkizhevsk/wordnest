@@ -139,9 +139,23 @@ class AppDatabase {
     return result.map((json) => CardEntity.fromJson(json)).toList();
   }
 
-  Future<CardEntity> getCardToLearn() async {
+  Future<List<CardEntity>> getCardsByDeck(int deckId) async {
+    final db = await instance.database;
+
+    final result = await db.query(
+      constants.cardTableName,
+      where: '${constants.deckIdField} = ?',
+      whereArgs: [deckId],
+      orderBy: '${constants.cardEditDateTimeField} DESC',
+    );
+
+    // Map the results to a list of CardEntity objects
+    return result.map((json) => CardEntity.fromJson(json)).toList();
+  }
+
+  Future<CardEntity> getCardToLearn(int deckId) async {
     print('getCardToLearn');
-    var cards = await getCards();
+    var cards = await getCardsByDeck(deckId);
     print('cards to learn: ${cards.length}');
     // for (var card in cards) {
     //   print(card);
