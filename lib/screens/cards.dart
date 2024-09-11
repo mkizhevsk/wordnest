@@ -23,16 +23,33 @@ class CardTabState extends State<CardTab> {
   String _exampleText = "";
 
   // Test deck data (IDs and names)
-  List<Map<String, dynamic>> _decks = [
-    {"id": 1, "name": "Deck 1"}, // Test deck 1
-    {"id": 2, "name": "Deck 2"}, // Test deck 2
-  ];
+  List<Map<String, dynamic>> _decks = [];
+  //   {"id": 1, "name": "Deck 1"}, // Test deck 1
+  //   {"id": 2, "name": "Deck 2"}, // Test deck 2
+  // ];
 
   @override
   void initState() {
     super.initState();
     db = AppDatabase.instance;
+
+    _fetchDecks();
     _fetchCardData();
+  }
+
+  // Method to fetch decks from the database
+  Future<void> _fetchDecks() async {
+    // Assuming db.getDecks() returns a list of decks from the database
+    final decks = await db.getDecks();
+
+    // Update the state with fetched decks
+    setState(() {
+      _decks = decks.map((deck) => {"id": deck.id, "name": deck.name}).toList();
+      // Set default selected deck ID to the first one
+      if (_decks.isNotEmpty) {
+        _deckId = _decks[0]["id"];
+      }
+    });
   }
 
   Future<void> _fetchCardData() async {
@@ -135,6 +152,7 @@ class CardTabState extends State<CardTab> {
                         onChanged: (int? newValue) {
                           setState(() {
                             _deckId = newValue!;
+                            _nextCard;
                           });
                         },
                       ),
