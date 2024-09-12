@@ -4,6 +4,7 @@ import 'package:wordnest/screens/card_form.dart';
 import 'package:wordnest/design/colors.dart';
 import 'package:wordnest/database/app_database.dart';
 import 'package:wordnest/assets/constants.dart' as constants;
+import 'package:wordnest/services/preferences_service.dart';
 
 class CardTab extends StatefulWidget {
   const CardTab({super.key});
@@ -24,38 +25,40 @@ class CardTabState extends State<CardTab> {
 
   // Test deck data (IDs and names)
   List<Map<String, dynamic>> _decks = [];
-  //   {"id": 1, "name": "Deck 1"}, // Test deck 1
-  //   {"id": 2, "name": "Deck 2"}, // Test deck 2
-  // ];
+  final PreferencesService _preferencesService = PreferencesService();
 
   @override
   void initState() {
     super.initState();
     db = AppDatabase.instance;
 
+    _initializeDeckId();
     _fetchDecks();
     _fetchCardData();
   }
 
-  // Method to fetch decks from the database
-  Future<void> _fetchDecks() async {
-    // Assuming db.getDecks() returns a list of decks from the database
-    final decks = await db.getDecks();
+  Future<void> _initializeDeckId() async {
+    final savedDeckId = await _preferencesService.getSelectedDeckId();
+    if (savedDeckId != null) {
+      _deckId = savedDeckId;
+    } else {
+      _preferencesService.saveSelectedDeckId(_deckId);
+    }
+    print('CardTabState: finish _initializeDeckId() with _deckId $_deckId');
+  }
 
-    // Update the state with fetched decks
+  // Fetch decks from the database
+  Future<void> _fetchDecks() async {
+    final decks = await db.getDecks();
+    print('CardTabState: _fetchDecks() with decks ${decks.length}');
     setState(() {
       _decks = decks.map((deck) => {"id": deck.id, "name": deck.name}).toList();
-      // Set default selected deck ID to the first one
-      if (_decks.isNotEmpty) {
-        _deckId = _decks[0]["id"];
-      }
     });
   }
 
   Future<void> _fetchCardData() async {
-    print('CardTabState _fetchCardData() for deckId $_deckId');
+    print('CardTabState: _fetchCardData() for deckId $_deckId');
     final card = await db.getCardToLearn(_deckId);
-
     setState(() {
       _cardId = card.id!;
       _frontText = card.front!;
@@ -64,12 +67,16 @@ class CardTabState extends State<CardTab> {
     });
   }
 
-  Future<void> _nextCard(int status) async {
+  // Save the selected deck ID using PreferencesService
+  Future<void> _saveSelectedDeckId(int deckId) async {
+    await _preferencesService.saveSelectedDeckId(deckId);
+  }
+
+  Future<void> _updateStatusAndFetchNextCard(int status) async {
     var updatedCard = await db.getCard(_cardId);
     updatedCard.status = status;
     updatedCard.editDateTime = DateTime.now();
     await db.updateCardFromForm(updatedCard);
-
     setState(() {
       _fetchCardData();
     });
@@ -84,6 +91,9 @@ class CardTabState extends State<CardTab> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      /**
+       * HEADER
+       */
       appBar: AppBar(
         leading: PopupMenuButton<int>(
           icon: const Icon(Icons.menu),
@@ -117,25 +127,35 @@ class CardTabState extends State<CardTab> {
               print('actions add');
               Navigator.of(context).push(
                 MaterialPageRoute(
-                  builder: (context) => const CardForm(),
+                  builder: (context) => const CardForm(0, '', '', ''),
                 ),
               );
             },
           ),
         ],
       ),
+
+      /**
+       * BODY
+       */
       body: Scaffold(
         backgroundColor: cardBodyBackgroundColor,
         body: SingleChildScrollView(
           child: Column(
             children: [
+              /**
+               * Search row
+               */
               const Padding(
                 padding: EdgeInsets.all(16.0),
                 child: Center(
                   child: SearchRow(),
                 ),
               ),
-              // Dropdown and button row
+
+              /**
+               * Deck dropdawn and add
+               */
               Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: Row(
@@ -150,9 +170,11 @@ class CardTabState extends State<CardTab> {
                           );
                         }).toList(),
                         onChanged: (int? newValue) {
+                          print('_deckId is now $_deckId');
                           setState(() {
                             _deckId = newValue!;
-                            _nextCard;
+                            _saveSelectedDeckId(newValue);
+                            _fetchCardData();
                           });
                         },
                       ),
@@ -169,6 +191,10 @@ class CardTabState extends State<CardTab> {
                   ],
                 ),
               ),
+
+              /**
+               * Card texts
+               */
               SizedBox(
                 height: 300,
                 width: double.infinity,
@@ -183,6 +209,9 @@ class CardTabState extends State<CardTab> {
                       },
                       onLongPress: () {
                         print('onLongPress');
+                        Navigator.of(context).push(MaterialPageRoute(
+                            builder: (context) => CardForm(
+                                _cardId, _frontText, _backText, _exampleText)));
                       },
                       child: Card(
                         child: _isFrontSide
@@ -193,7 +222,10 @@ class CardTabState extends State<CardTab> {
                   ),
                 ),
               ),
-              // two buttons
+
+              /**
+               * Two buttons
+               */
               Padding(
                 padding: const EdgeInsets.only(
                   left: 10.0,
@@ -209,7 +241,8 @@ class CardTabState extends State<CardTab> {
                         child: TextButton(
                             onPressed: () {
                               print("onPressed next");
-                              _nextCard(constants.cardIsNotLearned);
+                              _updateStatusAndFetchNextCard(
+                                  constants.cardIsNotLearned);
                             },
                             child: const Icon(Icons.navigate_next)),
                       ),
@@ -217,7 +250,8 @@ class CardTabState extends State<CardTab> {
                         child: TextButton(
                             onPressed: () {
                               print("onPressed done");
-                              _nextCard(constants.cardIsLearned);
+                              _updateStatusAndFetchNextCard(
+                                  constants.cardIsLearned);
                             },
                             child: const Icon(Icons.done)),
                       ),

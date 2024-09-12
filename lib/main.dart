@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:wordnest/services/preferences_service.dart';
 import 'package:wordnest/screens/contacts.dart';
 import 'package:wordnest/screens/cards.dart';
 import 'package:wordnest/screens/others.dart';
@@ -25,15 +25,10 @@ void _setupLogging() {
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
+  // Use the PreferencesService to check if it's the first launch
   Future<bool> _isFirstLaunch() async {
-    final prefs = await SharedPreferences.getInstance();
-    final isFirstLaunch = prefs.getBool('isFirstLaunch') ?? true;
-
-    if (isFirstLaunch) {
-      // Set 'isFirstLaunch' to false after the first launch
-      await prefs.setBool('isFirstLaunch', false);
-    }
-    return isFirstLaunch;
+    final preferencesService = PreferencesService();
+    return await preferencesService.isFirstLaunch();
   }
 
   @override
