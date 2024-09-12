@@ -17,7 +17,7 @@ class CardTabState extends State<CardTab> {
   late AppDatabase db;
   bool _isFrontSide = true;
 
-  late int _deckId;
+  int _deckId = 0;
   int _cardId = 0;
   String _frontText = "";
   String _backText = "";
@@ -290,7 +290,7 @@ class CardTabState extends State<CardTab> {
         padding: const EdgeInsets.all(8.0),
         alignment: Alignment.center,
         child: Text(
-          text,
+          _deckId > 0 ? text : "",
           style: const TextStyle(fontSize: 18),
         ),
       ),
@@ -317,7 +317,7 @@ class CardTabState extends State<CardTab> {
               bottom: 0.0,
             ),
             child: Text(
-              text1,
+              _deckId > 0 ? text1 : "",
               style: const TextStyle(color: cardContentFontColor, fontSize: 18),
             ),
           ),
@@ -339,7 +339,7 @@ class CardTabState extends State<CardTab> {
               bottom: 16.0,
             ),
             child: Text(
-              text2,
+              _deckId > 0 ? text2 : "",
               style: const TextStyle(color: cardContentFontColor, fontSize: 18),
             ),
           ),
