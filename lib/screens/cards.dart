@@ -17,7 +17,7 @@ class CardTabState extends State<CardTab> {
   late AppDatabase db;
   bool _isFrontSide = true;
 
-  int _deckId = 1;
+  late int _deckId;
   int _cardId = 0;
   String _frontText = "";
   String _backText = "";
@@ -34,7 +34,6 @@ class CardTabState extends State<CardTab> {
 
     _initializeDeckId();
     _fetchDecks();
-    _fetchCardData();
   }
 
   Future<void> _initializeDeckId() async {
@@ -42,9 +41,11 @@ class CardTabState extends State<CardTab> {
     if (savedDeckId != null) {
       _deckId = savedDeckId;
     } else {
+      _deckId = 1;
       _preferencesService.saveSelectedDeckId(_deckId);
     }
     print('CardTabState: finish _initializeDeckId() with _deckId $_deckId');
+    _fetchCardData();
   }
 
   // Fetch decks from the database
@@ -58,13 +59,26 @@ class CardTabState extends State<CardTab> {
 
   Future<void> _fetchCardData() async {
     print('CardTabState: _fetchCardData() for deckId $_deckId');
-    final card = await db.getCardToLearn(_deckId);
-    setState(() {
-      _cardId = card.id!;
-      _frontText = card.front!;
-      _backText = card.back!;
-      _exampleText = card.example!;
-    });
+    try {
+      final card = await db.getCardToLearn(_deckId);
+      setState(() {
+        _cardId = card.id!;
+        _frontText = card.front!;
+        _backText = card.back!;
+        _exampleText = card.example!;
+      });
+    } catch (e) {
+      if (e is Exception &&
+          e.toString().contains('No unlearned cards available')) {
+        setState(() {
+          _frontText = 'No unlearned cards available';
+          _backText = '';
+          _exampleText = '';
+        });
+      } else {
+        print('Error fetching card data: $e');
+      }
+    }
   }
 
   // Save the selected deck ID using PreferencesService
