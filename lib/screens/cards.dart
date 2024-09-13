@@ -23,7 +23,6 @@ class CardTabState extends State<CardTab> {
   String _backText = "";
   String _exampleText = "";
 
-  // Test deck data (IDs and names)
   List<Map<String, dynamic>> _decks = [];
   final PreferencesService _preferencesService = PreferencesService();
 
@@ -48,7 +47,6 @@ class CardTabState extends State<CardTab> {
     _fetchCardData();
   }
 
-  // Fetch decks from the database
   Future<void> _fetchDecks() async {
     final decks = await db.getDecks();
     print('CardTabState: _fetchDecks() with decks ${decks.length}');
@@ -61,6 +59,7 @@ class CardTabState extends State<CardTab> {
     print('CardTabState: _fetchCardData() for deckId $_deckId');
     try {
       final card = await db.getCardToLearn(_deckId);
+      if (!mounted) return;
       setState(() {
         _cardId = card.id!;
         _frontText = card.front!;
@@ -70,6 +69,7 @@ class CardTabState extends State<CardTab> {
     } catch (e) {
       if (e is Exception &&
           e.toString().contains('No unlearned cards available')) {
+        if (!mounted) return;
         setState(() {
           _frontText = 'No unlearned cards available';
           _backText = '';
@@ -81,7 +81,6 @@ class CardTabState extends State<CardTab> {
     }
   }
 
-  // Save the selected deck ID using PreferencesService
   Future<void> _saveSelectedDeckId(int deckId) async {
     await _preferencesService.saveSelectedDeckId(deckId);
   }

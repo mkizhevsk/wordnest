@@ -9,7 +9,7 @@ import 'package:logging/logging.dart';
 import 'package:wordnest/services/app_initializer.dart';
 
 void main() {
-  //_setupLogging();
+  _setupLogging();
   runApp(const MyApp());
 }
 
@@ -17,15 +17,13 @@ void _setupLogging() {
   Logger.root.level = Level.ALL;
 
   Logger.root.onRecord.listen((LogRecord rec) {
-    Logger.root.info(
-        '${rec.level.name}: ${rec.time}: ${rec.loggerName}: ${rec.message}');
+    print('${rec.level.name}: ${rec.time}: ${rec.loggerName}: ${rec.message}');
   });
 }
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-  // Use the PreferencesService to check if it's the first launch
   Future<bool> _isFirstLaunch() async {
     final preferencesService = PreferencesService();
     return await preferencesService.isFirstLaunch();
@@ -40,10 +38,10 @@ class MyApp extends StatelessWidget {
           if (snapshot.hasError) {
             return const Center(child: Text("Error occurred"));
           } else if (snapshot.hasData && snapshot.data == true) {
-            // If it's the first launch, navigate to the LoginScreen
+            Logger.root.info('First launch detected');
             return const LoginScreen();
           } else {
-            // If it's not the first launch, navigate directly to MyHomePage
+            Logger.root.info('Not the first launch');
             return const MyHomePage();
           }
         },
