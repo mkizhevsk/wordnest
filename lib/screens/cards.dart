@@ -108,6 +108,9 @@ class CardTabState extends State<CardTab> {
        * HEADER
        */
       appBar: AppBar(
+        /**
+         * Hamburger menu
+         */
         leading: PopupMenuButton<int>(
           icon: const Icon(Icons.menu),
           onSelected: (value) {
@@ -130,8 +133,34 @@ class CardTabState extends State<CardTab> {
             ),
           ],
         ),
-        title: const Text('My space'),
+
+        /**
+         * Deck dropdawn
+         */
+        title: Center(
+          child: DropdownButton<int>(
+            value: _deckId,
+            items: _decks.map((deck) {
+              return DropdownMenuItem<int>(
+                value: deck["id"],
+                child: Text(deck["name"]),
+              );
+            }).toList(),
+            onChanged: (int? newValue) {
+              print('_deckId is now $_deckId');
+              setState(() {
+                _deckId = newValue!;
+                _saveSelectedDeckId(newValue);
+                _fetchCardData();
+              });
+            },
+          ),
+        ),
         centerTitle: true,
+
+        /**
+         * Add card button
+         */
         actions: [
           IconButton(
             icon: const Icon(Icons.add),
@@ -163,45 +192,6 @@ class CardTabState extends State<CardTab> {
                 padding: EdgeInsets.all(16.0),
                 child: Center(
                   child: SearchRow(),
-                ),
-              ),
-
-              /**
-               * Deck dropdawn and add
-               */
-              Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: DropdownButton<int>(
-                        value: _deckId,
-                        items: _decks.map((deck) {
-                          return DropdownMenuItem<int>(
-                            value: deck["id"],
-                            child: Text(deck["name"]),
-                          );
-                        }).toList(),
-                        onChanged: (int? newValue) {
-                          print('_deckId is now $_deckId');
-                          setState(() {
-                            _deckId = newValue!;
-                            _saveSelectedDeckId(newValue);
-                            _fetchCardData();
-                          });
-                        },
-                      ),
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.add),
-                      tooltip: 'Create deck',
-                      onPressed: () {
-                        // Handle create deck logic
-                        print('Create new deck');
-                        // You can navigate to a new screen or show a dialog to create a deck
-                      },
-                    ),
-                  ],
                 ),
               ),
 
