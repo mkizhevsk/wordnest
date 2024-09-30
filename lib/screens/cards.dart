@@ -114,21 +114,25 @@ class CardTabState extends State<CardTab> {
         leading: PopupMenuButton<int>(
           icon: const Icon(Icons.menu),
           onSelected: (value) {
-            // Handle menu item selection here
             if (value == 1) {
               print('one');
             } else if (value == 2) {
-              // Exit the app
+              print('two');
+            } else if (value == 3) {
               SystemNavigator.pop();
             }
           },
           itemBuilder: (context) => const [
             PopupMenuItem(
               value: 1,
-              child: Text('Cards'),
+              child: Text('Add deck'),
             ),
             PopupMenuItem(
               value: 2,
+              child: Text('Update deck'),
+            ),
+            PopupMenuItem(
+              value: 3,
               child: Text('Exit'),
             ),
           ],
