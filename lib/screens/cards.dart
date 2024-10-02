@@ -5,6 +5,7 @@ import 'package:wordnest/design/colors.dart';
 import 'package:wordnest/database/app_database.dart';
 import 'package:wordnest/assets/constants.dart' as constants;
 import 'package:wordnest/services/preferences_service.dart';
+import 'package:wordnest/screens/deck_form.dart';
 
 class CardTab extends StatefulWidget {
   const CardTab({super.key});
@@ -115,7 +116,11 @@ class CardTabState extends State<CardTab> {
           icon: const Icon(Icons.menu),
           onSelected: (value) {
             if (value == 1) {
-              print('one');
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => AddDeckScreen(),
+                ),
+              );
             } else if (value == 2) {
               print('two');
             } else if (value == 3) {
