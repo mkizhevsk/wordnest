@@ -1,15 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:wordnest/database/app_database.dart';
-import 'package:wordnest/assets/constants.dart' as constants;
 import 'package:wordnest/model/entity/deck.dart';
 import 'package:wordnest/utils/string_random_generator.dart';
 
 class AddDeckScreen extends StatefulWidget {
+  final int deckId;
+  final Future<void> Function()? onDeckSaved; // Callback for refreshing decks
+
+  const AddDeckScreen({
+    super.key,
+    required this.deckId,
+    this.onDeckSaved,
+  }); // Pass the key parameter to the superclass
+
   @override
-  _AddDeckScreenState createState() => _AddDeckScreenState();
+  AddDeckScreenState createState() => AddDeckScreenState();
 }
 
-class _AddDeckScreenState extends State<AddDeckScreen> {
+class AddDeckScreenState extends State<AddDeckScreen> {
   final _deckNameController = TextEditingController();
   late AppDatabase db;
 
@@ -17,23 +25,40 @@ class _AddDeckScreenState extends State<AddDeckScreen> {
   void initState() {
     super.initState();
     db = AppDatabase.instance; // Initialize your database instance
+
+    // If deckId > 0, load the deck data
+    if (widget.deckId > 0) {
+      _loadDeckData(widget.deckId);
+    }
   }
 
-  Future<void> _saveNewDeck() async {
+  Future<void> _loadDeckData(int id) async {
+    try {
+      DeckEntity deck = await db.getDeckById(id); // Fetch the deck by ID
+      _deckNameController.text = deck.name; // Set the name in the controller
+    } catch (e) {
+      ('Error loading deck: $e'); // Handle any errors
+    }
+  }
+
+  Future<void> _saveDeck() async {
     String deckName = _deckNameController.text.trim();
     if (deckName.isNotEmpty) {
-      // Create a new DeckEntity object
-      DeckEntity newDeck = DeckEntity(
+      DeckEntity deckEntity = DeckEntity(
+        id: widget.deckId,
         name: deckName,
-        internalCode: StringRandomGenerator.instance.getValue(),
+        internalCode:
+            widget.deckId == 0 ? StringRandomGenerator.instance.getValue() : '',
         editDateTime: DateTime.now(),
       );
 
-      // Use the createDeck method to save the new deck
-      await db.createDeck(newDeck);
+      await db.saveDeck(deckEntity);
 
-      // Close the screen after saving
-      Navigator.of(context).pop();
+      if (widget.onDeckSaved != null) {
+        await widget.onDeckSaved!(); // Call the callback to refresh the decks
+      }
+
+      Navigator.of(context).pop(); // Close the screen after saving
     } else {
       print('Deck name cannot be empty');
     }
@@ -57,7 +82,7 @@ class _AddDeckScreenState extends State<AddDeckScreen> {
             ),
             const SizedBox(height: 20),
             ElevatedButton(
-              onPressed: _saveNewDeck,
+              onPressed: _saveDeck,
               child: const Text('Save Deck'),
             ),
           ],

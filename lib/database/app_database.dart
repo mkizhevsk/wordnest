@@ -61,10 +61,23 @@ class AppDatabase {
   }
 
   // Deck
-  Future<DeckEntity> createDeck(DeckEntity deck) async {
+  Future<DeckEntity> saveDeck(DeckEntity deck) async {
     final db = await instance.database;
-    final id = await db.insert(constants.deckTableName, deck.toJson());
-    return deck.copyWith(id: id);
+
+    if (deck.id == null || deck.id == 0) {
+      // Insert new deck
+      final id = await db.insert(constants.deckTableName, deck.toJson());
+      return deck.copyWith(id: id); // Return the new deck with its generated ID
+    } else {
+      // Update only the name of the existing deck
+      await db.update(
+        constants.deckTableName,
+        {constants.deckNameField: deck.name}, // Only update the name field
+        where: '${constants.deckIdField} = ?',
+        whereArgs: [deck.id],
+      );
+      return deck; // Return the updated deck
+    }
   }
 
   Future<List<DeckEntity>> getDecks() async {
@@ -78,6 +91,24 @@ class AppDatabase {
     return List.generate(deckMaps.length, (i) {
       return DeckEntity.fromJson(deckMaps[i]);
     });
+  }
+
+  Future<DeckEntity> getDeckById(int id) async {
+    final db = await instance.database;
+
+    // Query the deck table to find a deck with the specified ID
+    final result = await db.query(
+      constants.deckTableName, // Use the constant for the table name
+      where: '${constants.deckIdField} = ?', // Filter by ID
+      whereArgs: [id],
+    );
+
+    // Check if any deck was found and return it as a DeckEntity
+    if (result.isNotEmpty) {
+      return DeckEntity.fromJson(result.first);
+    } else {
+      throw Exception('No deck found with ID $id');
+    }
   }
 
   Future<DeckEntity> getDeckByInternalCode(String internalCode) async {

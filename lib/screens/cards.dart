@@ -6,6 +6,7 @@ import 'package:wordnest/database/app_database.dart';
 import 'package:wordnest/assets/constants.dart' as constants;
 import 'package:wordnest/services/preferences_service.dart';
 import 'package:wordnest/screens/deck_form.dart';
+import 'package:logging/logging.dart';
 
 class CardTab extends StatefulWidget {
   const CardTab({super.key});
@@ -27,6 +28,8 @@ class CardTabState extends State<CardTab> {
   List<Map<String, dynamic>> _decks = [];
   final PreferencesService _preferencesService = PreferencesService();
 
+  final Logger _logger = Logger('CardTabState');
+
   @override
   void initState() {
     super.initState();
@@ -44,20 +47,21 @@ class CardTabState extends State<CardTab> {
       _deckId = 1;
       _preferencesService.saveSelectedDeckId(_deckId);
     }
-    print('CardTabState: finish _initializeDeckId() with _deckId $_deckId');
+    _logger
+        .info('CardTabState: finish _initializeDeckId() with _deckId $_deckId');
     _fetchCardData();
   }
 
   Future<void> _fetchDecks() async {
     final decks = await db.getDecks();
-    print('CardTabState: _fetchDecks() with decks ${decks.length}');
+    _logger.info('CardTabState: _fetchDecks() with decks ${decks.length}');
     setState(() {
       _decks = decks.map((deck) => {"id": deck.id, "name": deck.name}).toList();
     });
   }
 
   Future<void> _fetchCardData() async {
-    print('CardTabState: _fetchCardData() for deckId $_deckId');
+    _logger.info('CardTabState: _fetchCardData() for deckId $_deckId');
     try {
       final card = await db.getCardToLearn(_deckId);
       if (!mounted) return;
@@ -77,7 +81,7 @@ class CardTabState extends State<CardTab> {
           _exampleText = '';
         });
       } else {
-        print('Error fetching card data: $e');
+        _logger.severe('Error fetching card data: $e');
       }
     }
   }
@@ -94,6 +98,10 @@ class CardTabState extends State<CardTab> {
     setState(() {
       _fetchCardData();
     });
+  }
+
+  Future<void> _refreshDecksAfterSave() async {
+    await _fetchDecks(); // Refresh decks after saving
   }
 
   void _turnCard() {
@@ -118,11 +126,21 @@ class CardTabState extends State<CardTab> {
             if (value == 1) {
               Navigator.of(context).push(
                 MaterialPageRoute(
-                  builder: (context) => AddDeckScreen(),
+                  builder: (context) => AddDeckScreen(
+                    deckId: 0,
+                    onDeckSaved: _refreshDecksAfterSave,
+                  ),
                 ),
               );
             } else if (value == 2) {
-              print('two');
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => AddDeckScreen(
+                    deckId: _deckId,
+                    onDeckSaved: _refreshDecksAfterSave,
+                  ),
+                ),
+              );
             } else if (value == 3) {
               SystemNavigator.pop();
             }
@@ -134,7 +152,7 @@ class CardTabState extends State<CardTab> {
             ),
             PopupMenuItem(
               value: 2,
-              child: Text('Update deck'),
+              child: Text('Rename deck'),
             ),
             PopupMenuItem(
               value: 3,
@@ -156,7 +174,7 @@ class CardTabState extends State<CardTab> {
               );
             }).toList(),
             onChanged: (int? newValue) {
-              print('_deckId is now $_deckId');
+              _logger.info('_deckId is now $_deckId');
               setState(() {
                 _deckId = newValue!;
                 _saveSelectedDeckId(newValue);
@@ -175,7 +193,7 @@ class CardTabState extends State<CardTab> {
             icon: const Icon(Icons.add),
             tooltip: 'Add card',
             onPressed: () {
-              print('actions add');
+              _logger.info('actions add');
               Navigator.of(context).push(
                 MaterialPageRoute(
                   builder: (context) => const CardForm(0, '', '', ''),
@@ -216,11 +234,11 @@ class CardTabState extends State<CardTab> {
                     color: cardBodyBackgroundColor,
                     child: GestureDetector(
                       onTap: () {
-                        print('onTap');
+                        _logger.info('onTap');
                         _turnCard();
                       },
                       onLongPress: () {
-                        print('onLongPress');
+                        _logger.info('onLongPress');
                         Navigator.of(context).push(MaterialPageRoute(
                             builder: (context) => CardForm(
                                 _cardId, _frontText, _backText, _exampleText)));
@@ -252,7 +270,7 @@ class CardTabState extends State<CardTab> {
                       Expanded(
                         child: TextButton(
                             onPressed: () {
-                              print("onPressed next");
+                              _logger.info("onPressed next");
                               _updateStatusAndFetchNextCard(
                                   constants.cardIsNotLearned);
                             },
@@ -261,7 +279,7 @@ class CardTabState extends State<CardTab> {
                       Expanded(
                         child: TextButton(
                             onPressed: () {
-                              print("onPressed done");
+                              _logger.info("onPressed done");
                               _updateStatusAndFetchNextCard(
                                   constants.cardIsLearned);
                             },
@@ -348,6 +366,8 @@ class CardTabState extends State<CardTab> {
 }
 
 class SearchRow extends StatelessWidget {
+  static final _logger = Logger('SearchRow');
+
   const SearchRow({super.key});
 
   @override
@@ -370,7 +390,7 @@ class SearchRow extends StatelessWidget {
               ),
               onChanged: (query) {
                 // Handle the search logic here
-                print('Search query: $query');
+                _logger.info('Search query: $query');
               },
             ),
           ),
