@@ -44,15 +44,26 @@ class AddDeckScreenState extends State<AddDeckScreen> {
   Future<void> _saveDeck() async {
     String deckName = _deckNameController.text.trim();
     if (deckName.isNotEmpty) {
-      DeckEntity deckEntity = DeckEntity(
-        id: widget.deckId,
-        name: deckName,
-        internalCode:
-            widget.deckId == 0 ? StringRandomGenerator.instance.getValue() : '',
-        editDateTime: DateTime.now(),
-      );
+      DeckEntity deckEntity;
 
-      await db.saveDeck(deckEntity);
+      if (widget.deckId == 0) {
+        // Insert a new deck without specifying an ID
+        deckEntity = DeckEntity(
+          name: deckName,
+          internalCode: StringRandomGenerator.instance.getValue(),
+          editDateTime: DateTime.now(),
+        );
+        await db.createDeck(deckEntity); // Use insertDeck method here
+      } else {
+        // Update an existing deck with the given ID
+        deckEntity = DeckEntity(
+          id: widget.deckId,
+          name: deckName,
+          internalCode: '',
+          editDateTime: DateTime.now(),
+        );
+        await db.updateDeck(deckEntity); // Use saveDeck method here for update
+      }
 
       if (widget.onDeckSaved != null) {
         await widget.onDeckSaved!(); // Call the callback to refresh the decks

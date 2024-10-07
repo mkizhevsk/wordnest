@@ -5,12 +5,14 @@ import 'package:wordnest/utils/string_random_generator.dart';
 import 'package:wordnest/main.dart';
 
 class CardForm extends StatefulWidget {
+  final int _deckId;
   final int _cardId;
   final String _front;
   final String _back;
   final String _example;
 
-  const CardForm(this._cardId, this._front, this._back, this._example,
+  const CardForm(
+      this._deckId, this._cardId, this._front, this._back, this._example,
       {super.key});
 
   @override
@@ -45,6 +47,7 @@ class _CardFormState extends State<CardForm> {
 
   Future<int> _createCard() async {
     var card = CardEntity(
+      deckId: widget._deckId,
       internalCode: StringRandomGenerator.instance.getValue(),
       editDateTime: DateTime.now(),
       front: _frontController.text,

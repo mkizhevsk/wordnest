@@ -101,7 +101,10 @@ class CardTabState extends State<CardTab> {
   }
 
   Future<void> _refreshDecksAfterSave() async {
-    await _fetchDecks(); // Refresh decks after saving
+    await _fetchDecks();
+    setState(() {
+      _fetchCardData();
+    });
   }
 
   void _turnCard() {
@@ -196,7 +199,7 @@ class CardTabState extends State<CardTab> {
               _logger.info('actions add');
               Navigator.of(context).push(
                 MaterialPageRoute(
-                  builder: (context) => const CardForm(0, '', '', ''),
+                  builder: (context) => CardForm(_deckId, 0, '', '', ''),
                 ),
               );
             },
@@ -240,8 +243,8 @@ class CardTabState extends State<CardTab> {
                       onLongPress: () {
                         _logger.info('onLongPress');
                         Navigator.of(context).push(MaterialPageRoute(
-                            builder: (context) => CardForm(
-                                _cardId, _frontText, _backText, _exampleText)));
+                            builder: (context) => CardForm(_deckId, _cardId,
+                                _frontText, _backText, _exampleText)));
                       },
                       child: Card(
                         child: _isFrontSide

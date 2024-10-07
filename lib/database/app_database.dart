@@ -61,14 +61,18 @@ class AppDatabase {
   }
 
   // Deck
-  Future<DeckEntity> saveDeck(DeckEntity deck) async {
+  Future<DeckEntity> createDeck(DeckEntity deck) async {
+    final db = await instance.database;
+    // Insert new deck without id
+    final id = await db.insert(constants.deckTableName, deck.toJson());
+    return deck.copyWith(id: id); // Return the new deck with generated ID
+  }
+
+  // Deck Update
+  Future<DeckEntity> updateDeck(DeckEntity deck) async {
     final db = await instance.database;
 
-    if (deck.id == null || deck.id == 0) {
-      // Insert new deck
-      final id = await db.insert(constants.deckTableName, deck.toJson());
-      return deck.copyWith(id: id); // Return the new deck with its generated ID
-    } else {
+    if (deck.id != null && deck.id! > 0) {
       // Update only the name of the existing deck
       await db.update(
         constants.deckTableName,
@@ -77,6 +81,8 @@ class AppDatabase {
         whereArgs: [deck.id],
       );
       return deck; // Return the updated deck
+    } else {
+      throw Exception('Invalid deck ID for update');
     }
   }
 
