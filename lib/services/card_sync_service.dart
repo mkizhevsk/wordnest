@@ -102,7 +102,12 @@ class CardSyncService {
   }
 
   Future<void> _deleteDeck(String internalCode) async {
-    // Implement logic to delete the deck from the local database using the internalCode
+    DeckEntity deck =
+        await AppDatabase.instance.getDeckByInternalCode(internalCode);
+    var deckName = deck.name;
+
+    await AppDatabase.instance.deleteDeckById(deck.id!);
+    _logger.info('Deck $deckName was deleted');
   }
 
   Future<void> _updateDeck(DeckDTO deck) async {

@@ -135,6 +135,15 @@ class AppDatabase {
     }
   }
 
+  Future<int> deleteDeckById(int deckId) async {
+    final db = await instance.database;
+    return await db.delete(
+      constants.deckTableName,
+      where: '${constants.deckIdField} = ?',
+      whereArgs: [deckId],
+    );
+  }
+
   // Card
   Future<CardEntity> createCard(CardEntity card) async {
     final db = await instance.database;
