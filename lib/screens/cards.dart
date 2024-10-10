@@ -35,18 +35,25 @@ class CardTabState extends State<CardTab> {
     super.initState();
     db = AppDatabase.instance;
 
-    _initializeDeckId();
     _fetchDecks();
   }
 
   Future<void> _initializeDeckId() async {
     final savedDeckId = await _preferencesService.getSelectedDeckId();
+
     if (savedDeckId != null) {
-      _deckId = savedDeckId;
+      try {
+        final deck = await db.getDeckById(savedDeckId);
+        _deckId = deck.id!;
+      } catch (e) {
+        _deckId = 1;
+        _preferencesService.saveSelectedDeckId(_deckId);
+      }
     } else {
       _deckId = 1;
       _preferencesService.saveSelectedDeckId(_deckId);
     }
+
     _logger
         .info('CardTabState: finish _initializeDeckId() with _deckId $_deckId');
     _fetchCardData();
@@ -54,9 +61,11 @@ class CardTabState extends State<CardTab> {
 
   Future<void> _fetchDecks() async {
     final decks = await db.getDecks();
+
     _logger.info('CardTabState: _fetchDecks() with decks ${decks.length}');
     setState(() {
       _decks = decks.map((deck) => {"id": deck.id, "name": deck.name}).toList();
+      _initializeDeckId();
     });
   }
 
