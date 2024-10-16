@@ -7,6 +7,8 @@ import 'package:wordnest/assets/constants.dart' as constants;
 import 'package:wordnest/services/preferences_service.dart';
 import 'package:wordnest/screens/deck_form.dart';
 import 'package:logging/logging.dart';
+import 'package:wordnest/utils/event_bus.dart';
+import 'package:wordnest/services/app_initializer.dart';
 
 class CardTab extends StatefulWidget {
   const CardTab({super.key});
@@ -36,6 +38,11 @@ class CardTabState extends State<CardTab> {
     db = AppDatabase.instance;
 
     _fetchDecks();
+
+    // Listen for SyncCompleteEvent from the EventBus
+    eventBus.on<SyncCompleteEvent>().listen((event) {
+      _refreshDecksAfterSave();
+    });
   }
 
   Future<void> _initializeDeckId() async {

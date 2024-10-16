@@ -121,7 +121,7 @@ class CardSyncService {
         internalCode: deckDTO.internalCode,
         editDateTime: editDateTime,
       );
-      await AppDatabase.instance.updateDeck(deckEntity);
+      await AppDatabase.instance.createDeck(deckEntity);
       _logger.info('Deck created with internalCode: ${deckDTO.internalCode}');
     } catch (error) {
       _logger.severe(
