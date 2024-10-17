@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:wordnest/database/app_database.dart';
 import 'package:wordnest/model/entity/deck.dart';
 import 'package:wordnest/utils/string_random_generator.dart';
+import 'package:wordnest/services/http_service.dart';
 
 class AddDeckScreen extends StatefulWidget {
   final int deckId;
@@ -18,6 +19,7 @@ class AddDeckScreen extends StatefulWidget {
 }
 
 class AddDeckScreenState extends State<AddDeckScreen> {
+  final HttpService httpService = HttpService();
   final _deckNameController = TextEditingController();
   late AppDatabase db;
 
@@ -64,6 +66,9 @@ class AddDeckScreenState extends State<AddDeckScreen> {
         );
         await db.updateDeck(deckEntity); // Use saveDeck method here for update
       }
+
+      // Sync with the server in the background (no await)
+      HttpService().createOrUpdateDeck(deckEntity);
 
       if (widget.onDeckSaved != null) {
         await widget.onDeckSaved!(); // Call the callback to refresh the decks

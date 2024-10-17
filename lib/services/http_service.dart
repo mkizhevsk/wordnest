@@ -6,10 +6,10 @@ import 'package:wordnest/utils/date_util.dart';
 import 'package:wordnest/assets/constants.dart' as constants;
 import 'package:wordnest/database/app_database.dart';
 import 'package:wordnest/model/dto/deck_dto.dart';
+import 'package:wordnest/model/entity/deck.dart';
 
 class HttpService {
-  final String cardsUrl = '${constants.apiUrl}/api';
-  final String tokenUrl = '${constants.apiUrl}/api/token';
+  final String apiUrl = '${constants.apiUrl}/api';
 
   HttpService();
 
@@ -18,7 +18,7 @@ class HttpService {
     final tokenData = await db.getToken();
 
     final response = await http.post(
-      Uri.parse('$cardsUrl/decks/sync'),
+      Uri.parse('$apiUrl/decks/sync'),
       headers: {
         'Content-Type': 'application/json; charset=UTF-8',
         if (tokenData != null)
@@ -41,9 +41,48 @@ class HttpService {
     }
   }
 
+  Future<void> createOrUpdateDeck(DeckEntity deckEntity) async {
+    final db = AppDatabase.instance;
+    final tokenData = await db.getToken();
+    var deckDTO = DeckDTO.fromEntity(deckEntity, []);
+
+    Uri url = Uri.parse('$apiUrl/decks');
+    http.Response response;
+
+    if (deckEntity.id == 0) {
+      // Create a new deck
+      response = await http.post(
+        url,
+        headers: {
+          'Content-Type': 'application/json; charset=UTF-8',
+          if (tokenData != null)
+            'Authorization': 'Bearer ${tokenData[constants.accessTokenField]}',
+        },
+        body: jsonEncode(deckDTO),
+      );
+    } else {
+      // Update an existing deck
+      response = await http.put(
+        url,
+        headers: {
+          'Content-Type': 'application/json; charset=UTF-8',
+          if (tokenData != null)
+            'Authorization': 'Bearer ${tokenData[constants.accessTokenField]}',
+        },
+        body: jsonEncode(deckDTO),
+      );
+    }
+
+    if (response.statusCode == 200) {
+      print('Deck ${deckEntity.id == 0 ? "created" : "updated"} successfully');
+    } else {
+      throw Exception('Failed to create/update deck');
+    }
+  }
+
   Future<List<CardEntity>> getCards() async {
     final response = await http.get(
-      Uri.parse('$cardsUrl/cards'),
+      Uri.parse('$apiUrl/cards'),
       headers: {
         'Content-Type': 'application/json; charset=UTF-8',
       },
@@ -79,7 +118,7 @@ class HttpService {
   }
 
   Future<http.Response> get(String endpoint) async {
-    final response = await http.get(Uri.parse('$cardsUrl$endpoint'));
+    final response = await http.get(Uri.parse('$apiUrl$endpoint'));
 
     if (response.statusCode == 200) {
       return response;
@@ -90,7 +129,7 @@ class HttpService {
 
   Future<http.Response> post(String endpoint, Map<String, dynamic> data) async {
     final response = await http.post(
-      Uri.parse('$cardsUrl$endpoint'),
+      Uri.parse('$apiUrl$endpoint'),
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode(data),
     );
@@ -104,7 +143,7 @@ class HttpService {
 
   Future<http.Response> put(String endpoint, Map<String, dynamic> data) async {
     final response = await http.put(
-      Uri.parse('$cardsUrl$endpoint'),
+      Uri.parse('$apiUrl$endpoint'),
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode(data),
     );
@@ -117,7 +156,7 @@ class HttpService {
   }
 
   Future<http.Response> delete(String endpoint) async {
-    final response = await http.delete(Uri.parse('$cardsUrl$endpoint'));
+    final response = await http.delete(Uri.parse('$apiUrl$endpoint'));
 
     if (response.statusCode == 200) {
       return response;
