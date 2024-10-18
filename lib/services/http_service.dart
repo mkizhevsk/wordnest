@@ -41,7 +41,7 @@ class HttpService {
     }
   }
 
-  Future<void> createOrUpdateDeck(DeckEntity deckEntity) async {
+  Future<void> createOrUpdateDeck(DeckEntity deckEntity, int deckId) async {
     final db = AppDatabase.instance;
     final tokenData = await db.getToken();
     var deckDTO = DeckDTO.fromEntity(deckEntity, []);
@@ -49,7 +49,7 @@ class HttpService {
     Uri url = Uri.parse('$apiUrl/decks');
     http.Response response;
 
-    if (deckEntity.id == 0) {
+    if (deckId == 0) {
       // Create a new deck
       response = await http.post(
         url,

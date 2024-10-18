@@ -38,3 +38,6 @@ const String expiryDateField = "expiry_date";
 
 const int cardIsNotLearned = 0;
 const int cardIsLearned = 1;
+
+// Server time difference in hours
+const int serverTimeDifferenceHours = 3;

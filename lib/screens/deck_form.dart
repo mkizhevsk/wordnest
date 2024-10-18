@@ -50,25 +50,35 @@ class AddDeckScreenState extends State<AddDeckScreen> {
 
       if (widget.deckId == 0) {
         // Insert a new deck without specifying an ID
-        deckEntity = DeckEntity(
+        DeckEntity createdEntity = DeckEntity(
           name: deckName,
           internalCode: StringRandomGenerator.instance.getValue(),
           editDateTime: DateTime.now(),
         );
-        await db.createDeck(deckEntity); // Use insertDeck method here
+        deckEntity =
+            await db.createDeck(createdEntity); // Use insertDeck method here
       } else {
+        DeckEntity ddd1 = await db.getDeckById(widget.deckId);
+        print('here1 ${ddd1.internalCode}');
+
         // Update an existing deck with the given ID
-        deckEntity = DeckEntity(
+        DeckEntity updatedEntity = DeckEntity(
           id: widget.deckId,
           name: deckName,
           internalCode: '',
           editDateTime: DateTime.now(),
         );
-        await db.updateDeck(deckEntity); // Use saveDeck method here for update
+        deckEntity = await db
+            .updateDeck(updatedEntity); // Use saveDeck method here for update
+
+        DeckEntity ddd2 = await db.getDeckById(widget.deckId);
+        print('here2 ${ddd2.internalCode}');
       }
 
       // Sync with the server in the background (no await)
-      HttpService().createOrUpdateDeck(deckEntity);
+      print('here5');
+      print(deckEntity.internalCode);
+      HttpService().createOrUpdateDeck(deckEntity, widget.deckId);
 
       if (widget.onDeckSaved != null) {
         await widget.onDeckSaved!(); // Call the callback to refresh the decks

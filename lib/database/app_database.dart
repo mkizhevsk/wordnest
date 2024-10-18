@@ -73,14 +73,19 @@ class AppDatabase {
     final db = await instance.database;
 
     if (deck.id != null && deck.id! > 0) {
-      // Update only the name of the existing deck
       await db.update(
         constants.deckTableName,
-        {constants.deckNameField: deck.name}, // Only update the name field
+        {
+          constants.deckNameField: deck.name, // Update the name field
+          constants.deckEditDateTimeField:
+              DateTime.now().toIso8601String(), // Update the editDateTime field
+        },
         where: '${constants.deckIdField} = ?',
         whereArgs: [deck.id],
       );
-      return deck; // Return the updated deck
+
+      // Use getDeckById to fetch the updated deck
+      return await getDeckById(deck.id!);
     } else {
       throw Exception('Invalid deck ID for update');
     }
