@@ -49,7 +49,7 @@ class _CardFormState extends State<CardForm> {
     var card = CardEntity(
       deckId: widget._deckId,
       internalCode: StringRandomGenerator.instance.getValue(),
-      editDateTime: DateTime.now(),
+      editDateTime: DateTime.now().toUtc(),
       front: _frontController.text,
       back: _backController.text,
       example: _exampleController.text,
@@ -61,7 +61,7 @@ class _CardFormState extends State<CardForm> {
 
   Future<int> _updateCard() async {
     var updatedCard = await db.getCard(widget._cardId);
-    updatedCard.editDateTime = DateTime.now();
+    updatedCard.editDateTime = DateTime.now().toUtc();
     updatedCard.front = _frontController.text;
     updatedCard.back = _backController.text;
     updatedCard.example = _exampleController.text;

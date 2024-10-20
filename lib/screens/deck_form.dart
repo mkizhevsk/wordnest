@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:wordnest/database/app_database.dart';
 import 'package:wordnest/model/entity/deck.dart';
+import 'package:wordnest/utils/date_util.dart';
 import 'package:wordnest/utils/string_random_generator.dart';
 import 'package:wordnest/services/http_service.dart';
 
@@ -53,10 +54,9 @@ class AddDeckScreenState extends State<AddDeckScreen> {
         DeckEntity createdEntity = DeckEntity(
           name: deckName,
           internalCode: StringRandomGenerator.instance.getValue(),
-          editDateTime: DateTime.now(),
+          editDateTime: DateTime.now().toUtc(),
         );
-        deckEntity =
-            await db.createDeck(createdEntity); // Use insertDeck method here
+        deckEntity = await db.createDeck(createdEntity);
       } else {
         DeckEntity ddd1 = await db.getDeckById(widget.deckId);
         print('here1 ${ddd1.internalCode}');
@@ -66,13 +66,14 @@ class AddDeckScreenState extends State<AddDeckScreen> {
           id: widget.deckId,
           name: deckName,
           internalCode: '',
-          editDateTime: DateTime.now(),
+          editDateTime: DateTime.now()
+              .add(Duration(hours: -DateUtil.getMobileTimeDifference())),
         );
         deckEntity = await db
             .updateDeck(updatedEntity); // Use saveDeck method here for update
 
         DeckEntity ddd2 = await db.getDeckById(widget.deckId);
-        print('here2 ${ddd2.internalCode}');
+        print('here2 ${ddd2.internalCode} ${ddd2.editDateTime}');
       }
 
       // Sync with the server in the background (no await)

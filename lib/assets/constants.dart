@@ -1,5 +1,5 @@
 // api
-const String apiLogin = "dvega";
+const String apiLogin = "logins";
 const String apiPassword = "password";
 const String apiUrl = "https://wordnest.online";
 
