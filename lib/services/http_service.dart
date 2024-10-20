@@ -42,7 +42,7 @@ class HttpService {
   }
 
   Future<void> createOrUpdateDeck(DeckEntity deckEntity, int deckId) async {
-    print(deckEntity.name + " " + deckEntity.editDateTime.toString());
+    print("${deckEntity.name} ${deckEntity.editDateTime}");
     final db = AppDatabase.instance;
     final tokenData = await db.getToken();
     var deckDTO = DeckDTO.fromEntity(deckEntity, []);

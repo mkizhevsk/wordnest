@@ -82,12 +82,23 @@ class CardSyncService {
     for (var localDeck in localDecks) {
       if (localDeck.internalCode == webDeckDto.internalCode) {
         isPresent = true;
+        print('here123 ' +
+            webDeckEditDateTime.toString() +
+            ' ' +
+            localDeck.editDateTime.toString());
+
+        var trimedMobileDate = DateUtil.trimAndConvertToDateTime(
+            localDeck.editDateTime, webDeckEditDateTime);
+        print('here124 ' +
+            webDeckEditDateTime.toString() +
+            ' ' +
+            trimedMobileDate.toString());
 
         if (webDeckDto.deleted) {
           // If the deck is marked as deleted, remove it from the local database
           _logger.info("_deleteDeck");
           await _deleteDeck(localDeck.internalCode);
-        } else if (webDeckEditDateTime.isAfter(localDeck.editDateTime)) {
+        } else if (webDeckEditDateTime.isAfter(trimedMobileDate)) {
           _logger.info("_updateDeck");
           // If the server's version is newer, update the local deck
           await _updateDeck(webDeckDto);

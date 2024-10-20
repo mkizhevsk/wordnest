@@ -40,7 +40,7 @@ class AddDeckScreenState extends State<AddDeckScreen> {
       DeckEntity deck = await db.getDeckById(id); // Fetch the deck by ID
       _deckNameController.text = deck.name; // Set the name in the controller
     } catch (e) {
-      ('Error loading deck: $e'); // Handle any errors
+      ('Error loading deck: $e');
     }
   }
 
@@ -50,7 +50,6 @@ class AddDeckScreenState extends State<AddDeckScreen> {
       DeckEntity deckEntity;
 
       if (widget.deckId == 0) {
-        // Insert a new deck without specifying an ID
         DeckEntity createdEntity = DeckEntity(
           name: deckName,
           internalCode: StringRandomGenerator.instance.getValue(),
@@ -58,27 +57,22 @@ class AddDeckScreenState extends State<AddDeckScreen> {
         );
         deckEntity = await db.createDeck(createdEntity);
       } else {
-        DeckEntity ddd1 = await db.getDeckById(widget.deckId);
-        print('here1 ${ddd1.internalCode}');
-
-        // Update an existing deck with the given ID
         DeckEntity updatedEntity = DeckEntity(
           id: widget.deckId,
           name: deckName,
           internalCode: '',
-          editDateTime: DateTime.now()
-              .add(Duration(hours: -DateUtil.getMobileTimeDifference())),
+          editDateTime: DateTime.now().toUtc(),
         );
-        deckEntity = await db
-            .updateDeck(updatedEntity); // Use saveDeck method here for update
-
-        DeckEntity ddd2 = await db.getDeckById(widget.deckId);
-        print('here2 ${ddd2.internalCode} ${ddd2.editDateTime}');
+        deckEntity = await db.updateDeck(updatedEntity);
       }
 
       // Sync with the server in the background (no await)
-      print('here5');
-      print(deckEntity.internalCode);
+      print('_saveDeck end: ' +
+          deckEntity.internalCode +
+          ' ' +
+          deckEntity.name +
+          ' ' +
+          deckEntity.editDateTime.toString());
       HttpService().createOrUpdateDeck(deckEntity, widget.deckId);
 
       if (widget.onDeckSaved != null) {

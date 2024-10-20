@@ -1,5 +1,4 @@
 import 'package:intl/intl.dart';
-import 'package:wordnest/assets/constants.dart' as constants;
 
 class DateUtil {
   static DateTime stringToDateTime(String dateTimeString) {
@@ -12,51 +11,27 @@ class DateUtil {
     return format.format(dateTime);
   }
 
-  static getMobileTimeDifference() {
-    // Get the current local time
-    DateTime localTime = DateTime.now();
+  static DateTime trimAndConvertToDateTime(
+      DateTime dateTimeToTrim, DateTime referenceDateTime) {
+    // Step 1: Format both DateTimes to strings
+    DateFormat formatterWithMicroseconds =
+        DateFormat('yyyy-MM-dd HH:mm:ss.SSSSSS');
+    DateFormat formatterWithMilliseconds =
+        DateFormat('yyyy-MM-dd HH:mm:ss.SSS');
 
-    // Get the current UTC time
-    DateTime utcTime = DateTime.now().toUtc();
+    // Convert reference DateTime to String (this has 3 decimal places for milliseconds)
+    String referenceDateTimeStr =
+        formatterWithMilliseconds.format(referenceDateTime);
 
-    // Calculate the difference between local time and UTC
-    Duration timeDifference = localTime.difference(utcTime);
+    // Convert the second DateTime (with Z) to String, and remove the "Z"
+    String dateTimeToTrimStr =
+        formatterWithMicroseconds.format(dateTimeToTrim).replaceAll('Z', '');
 
-    print(
-        'Time difference between local time and UTC: ${timeDifference.inHours} hours');
+    // Step 2: Trim the second string to match the length of the first one
+    String trimmedDateTimeStr =
+        dateTimeToTrimStr.substring(0, referenceDateTimeStr.length);
 
-    DateTime now = DateTime.now();
-    Duration timeZoneOffset =
-        now.timeZoneOffset; // Get the time zone offset from UTC
-    String timeZoneName = now.timeZoneName; // Get the time zone name
-
-    print('Time Zone Offset: ${timeZoneOffset.inHours} hours');
-    print('Time Zone Name: $timeZoneName');
-
-    // Return the time difference in hours
-    return timeDifference.inHours;
+    // Step 3: Parse the trimmed string back into a DateTime object
+    return formatterWithMilliseconds.parse(trimmedDateTimeStr);
   }
-
-  // static getMobileToServerTimeDifference() {
-  //   // Get current local time
-  //   DateTime localTime = DateTime.now();
-
-  //   // Get current UTC time
-  //   DateTime utcTime = DateTime.now().toUtc();
-
-  //   // Calculate the difference
-  //   Duration timeDifference = localTime.difference(utcTime);
-  //   print(
-  //       'Time difference between local time and UTC: ${timeDifference.inHours} hours');
-
-  //   return timeDifference.inHours -
-  //       constants.serverTimeDifferenceHours; // 4 - 3 = 1
-  // }
-
-  // static DateTime getMobileTimeConvertedToServer(DateTime mobileDateTime) {
-  //   // Subtract the time difference between local and UTC from the mobile time
-  //   int mobileTimeDifference = getMobileToServerTimeDifference();
-  //   return mobileDateTime
-  //       .subtract(Duration(hours: mobileTimeDifference)); // 4 - 1 = 3
-  // }
 }

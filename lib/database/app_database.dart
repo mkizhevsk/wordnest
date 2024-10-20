@@ -76,9 +76,8 @@ class AppDatabase {
       await db.update(
         constants.deckTableName,
         {
-          constants.deckNameField: deck.name, // Update the name field
-          constants.deckEditDateTimeField:
-              DateTime.now().toIso8601String(), // Update the editDateTime field
+          constants.deckNameField: deck.name,
+          constants.deckEditDateTimeField: deck.editDateTime.toIso8601String(),
         },
         where: '${constants.deckIdField} = ?',
         whereArgs: [deck.id],
