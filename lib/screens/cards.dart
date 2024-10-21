@@ -38,10 +38,11 @@ class CardTabState extends State<CardTab> {
     db = AppDatabase.instance;
 
     _fetchDecks();
+    _initializeDeckId();
 
     // Listen for SyncCompleteEvent from the EventBus
     eventBus.on<SyncCompleteEvent>().listen((event) {
-      _refreshDecksAfterSave();
+      _refreshDecksAfterSave(_deckId);
     });
   }
 
@@ -72,7 +73,6 @@ class CardTabState extends State<CardTab> {
     _logger.info('CardTabState: _fetchDecks() with decks ${decks.length}');
     setState(() {
       _decks = decks.map((deck) => {"id": deck.id, "name": deck.name}).toList();
-      _initializeDeckId();
     });
   }
 
@@ -121,7 +121,9 @@ class CardTabState extends State<CardTab> {
     });
   }
 
-  Future<void> _refreshDecksAfterSave() async {
+  Future<void> _refreshDecksAfterSave(int deckId) async {
+    print("here1234 $deckId");
+    _deckId = deckId;
     await _fetchDecks();
     setState(() {
       _fetchCardData();

@@ -6,7 +6,8 @@ import 'package:wordnest/services/http_service.dart';
 
 class AddDeckScreen extends StatefulWidget {
   final int deckId;
-  final Future<void> Function()? onDeckSaved; // Callback for refreshing decks
+  final Future<void> Function(int)?
+      onDeckSaved; // Callback for refreshing decks
 
   const AddDeckScreen({
     super.key,
@@ -68,7 +69,8 @@ class AddDeckScreenState extends State<AddDeckScreen> {
       HttpService().createOrUpdateDeck(deckEntity, widget.deckId);
 
       if (widget.onDeckSaved != null) {
-        await widget.onDeckSaved!(); // Call the callback to refresh the decks
+        await widget.onDeckSaved!(
+            deckEntity.id!); // Call the callback to refresh the decks
       }
 
       Navigator.of(context).pop(); // Close the screen after saving
