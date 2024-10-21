@@ -35,7 +35,12 @@ class MyApp extends StatelessWidget {
       home: FutureBuilder<bool>(
         future: _isFirstLaunch(),
         builder: (context, snapshot) {
-          if (snapshot.hasError) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return Container(
+              color: Colors
+                  .white, // Set the same background color as your LoginScreen
+            );
+          } else if (snapshot.hasError) {
             return const Center(child: Text("Error occurred"));
           } else if (snapshot.hasData && snapshot.data == true) {
             Logger.root.info('First launch detected');
