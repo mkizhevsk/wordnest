@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:wordnest/screens/card_form.dart';
-import 'package:wordnest/design/colors.dart';
 import 'package:wordnest/database/app_database.dart';
 import 'package:wordnest/assets/constants.dart' as constants;
 import 'package:wordnest/services/preferences_service.dart';
@@ -9,6 +8,7 @@ import 'package:wordnest/screens/deck_form.dart';
 import 'package:logging/logging.dart';
 import 'package:wordnest/utils/event_bus.dart';
 import 'package:wordnest/services/app_initializer.dart';
+import 'package:wordnest/theme/app_colors.dart';
 
 class CardTab extends StatefulWidget {
   const CardTab({super.key});
@@ -109,8 +109,13 @@ class CardTabState extends State<CardTab> {
   Future<void> _updateStatusAndFetchNextCard(int status) async {
     var updatedCard = await db.getCard(_cardId);
     updatedCard.status = status;
-    updatedCard.editDateTime = DateTime.now();
+    updatedCard.editDateTime = DateTime.now().toUtc();
     await db.updateCardFromForm(updatedCard);
+
+    if (!_isFrontSide) {
+      _turnCard();
+    }
+
     setState(() {
       _fetchCardData();
     });
@@ -227,7 +232,7 @@ class CardTabState extends State<CardTab> {
        * BODY
        */
       body: Scaffold(
-        backgroundColor: cardBodyBackgroundColor,
+        backgroundColor: AppColors.cardBodyBackgroundColor,
         body: SingleChildScrollView(
           child: Column(
             children: [
@@ -250,7 +255,7 @@ class CardTabState extends State<CardTab> {
                 child: Padding(
                   padding: const EdgeInsets.all(16.0),
                   child: ColoredBox(
-                    color: cardBodyBackgroundColor,
+                    color: AppColors.cardBodyBackgroundColor,
                     child: GestureDetector(
                       onTap: () {
                         _logger.info('onTap');
@@ -319,7 +324,7 @@ class CardTabState extends State<CardTab> {
     return Center(
       child: Container(
         decoration: BoxDecoration(
-          color: cardContentBackgroundColor,
+          color: AppColors.cardContentBackgroundColor,
           borderRadius: BorderRadius.circular(8.0),
         ),
         padding: const EdgeInsets.all(8.0),
@@ -338,7 +343,7 @@ class CardTabState extends State<CardTab> {
         Expanded(
           child: Container(
             decoration: const BoxDecoration(
-              color: cardContentBackgroundColor,
+              color: AppColors.cardContentBackgroundColor,
               borderRadius: BorderRadius.only(
                 topLeft: Radius.circular(8.0),
                 topRight: Radius.circular(8.0),
@@ -353,14 +358,15 @@ class CardTabState extends State<CardTab> {
             ),
             child: Text(
               _deckId > 0 ? text1 : "",
-              style: const TextStyle(color: cardContentFontColor, fontSize: 18),
+              style: const TextStyle(
+                  color: AppColors.cardContentFontColor, fontSize: 18),
             ),
           ),
         ),
         Expanded(
           child: Container(
             decoration: const BoxDecoration(
-              color: cardContentBackgroundColor,
+              color: AppColors.cardContentBackgroundColor,
               borderRadius: BorderRadius.only(
                 bottomLeft: Radius.circular(8.0),
                 bottomRight: Radius.circular(8.0),
@@ -375,7 +381,8 @@ class CardTabState extends State<CardTab> {
             ),
             child: Text(
               _deckId > 0 ? text2 : "",
-              style: const TextStyle(color: cardContentFontColor, fontSize: 18),
+              style: const TextStyle(
+                  color: AppColors.cardContentFontColor, fontSize: 18),
             ),
           ),
         ),
@@ -405,7 +412,7 @@ class SearchRow extends StatelessWidget {
                   borderSide: BorderSide.none,
                 ),
                 filled: true,
-                fillColor: searchBackgroundColor,
+                fillColor: AppColors.searchBackgroundColor,
               ),
               onChanged: (query) {
                 // Handle the search logic here

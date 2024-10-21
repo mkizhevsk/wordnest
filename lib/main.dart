@@ -7,6 +7,7 @@ import 'package:wordnest/services/card_sync_service.dart';
 import 'package:wordnest/screens/login_screen.dart';
 import 'package:logging/logging.dart';
 import 'package:wordnest/services/app_initializer.dart';
+import 'package:wordnest/theme/app_colors.dart';
 
 void main() {
   _setupLogging();
@@ -37,8 +38,7 @@ class MyApp extends StatelessWidget {
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return Container(
-              color: Colors
-                  .white, // Set the same background color as your LoginScreen
+              color: AppColors.backgroundColor,
             );
           } else if (snapshot.hasError) {
             return const Center(child: Text("Error occurred"));

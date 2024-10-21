@@ -1,15 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:wordnest/services/auth_service.dart';
 import 'package:wordnest/screens/enter_code_screen.dart';
+import 'package:wordnest/theme/app_colors.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
   @override
-  _LoginScreenState createState() => _LoginScreenState();
+  LoginScreenState createState() => LoginScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
+class LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _usernameController = TextEditingController();
   final AuthService _authService = AuthService();
@@ -38,7 +39,11 @@ class _LoginScreenState extends State<LoginScreen> {
       appBar: AppBar(
         title: const Text('Login'),
       ),
-      body: Padding(
+      body: Container(
+        // Add background image
+        decoration: const BoxDecoration(
+          color: AppColors.backgroundColor,
+        ),
         padding: const EdgeInsets.all(16.0),
         child: Form(
           key: _formKey,
