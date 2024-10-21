@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:wordnest/database/app_database.dart';
 import 'package:wordnest/model/entity/deck.dart';
-import 'package:wordnest/utils/date_util.dart';
 import 'package:wordnest/utils/string_random_generator.dart';
 import 'package:wordnest/services/http_service.dart';
 
@@ -66,13 +65,6 @@ class AddDeckScreenState extends State<AddDeckScreen> {
         deckEntity = await db.updateDeck(updatedEntity);
       }
 
-      // Sync with the server in the background (no await)
-      print('_saveDeck end: ' +
-          deckEntity.internalCode +
-          ' ' +
-          deckEntity.name +
-          ' ' +
-          deckEntity.editDateTime.toString());
       HttpService().createOrUpdateDeck(deckEntity, widget.deckId);
 
       if (widget.onDeckSaved != null) {
