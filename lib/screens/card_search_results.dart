@@ -4,10 +4,8 @@ import 'package:wordnest/utils/event_bus.dart';
 
 class SearchResultsScreen extends StatelessWidget {
   final List<CardEntity> results;
-  final int deckId;
 
-  const SearchResultsScreen(
-      {super.key, required this.results, required this.deckId});
+  const SearchResultsScreen({super.key, required this.results});
 
   @override
   Widget build(BuildContext context) {

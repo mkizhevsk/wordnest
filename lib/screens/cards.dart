@@ -272,7 +272,7 @@ class CardTabState extends State<CardTab> {
               Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: Center(
-                  child: SearchRow(),
+                  child: SearchRow(deckId: _deckId),
                 ),
               ),
 
@@ -422,7 +422,9 @@ class CardTabState extends State<CardTab> {
 }
 
 class SearchRow extends StatefulWidget {
-  const SearchRow({super.key});
+  final int deckId;
+
+  const SearchRow({super.key, required this.deckId});
 
   @override
   SearchRowState createState() => SearchRowState();
@@ -445,8 +447,7 @@ class SearchRowState extends State<SearchRow> {
       if (mounted) {
         Navigator.of(context).push(
           MaterialPageRoute(
-            builder: (context) =>
-                SearchResultsScreen(results: results, deckId: widget.deckId),
+            builder: (context) => SearchResultsScreen(results: results),
           ),
         );
       }
