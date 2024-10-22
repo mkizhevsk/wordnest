@@ -244,6 +244,26 @@ class AppDatabase {
     );
   }
 
+  // Search
+  Future<List<CardEntity>> search(String query, int deckId) async {
+    final db = await instance.database;
+
+    final result = await db.query(
+      constants.cardTableName,
+      where: '''
+      (${constants.cardFrontField} LIKE ? OR 
+       ${constants.cardBackField} LIKE ? OR 
+       ${constants.cardExampleField} LIKE ?) AND 
+       ${constants.cardDeckIdField} = ?
+    ''',
+      whereArgs: ['%$query%', '%$query%', '%$query%', deckId],
+      orderBy: '${constants.cardEditDateTimeField} DESC',
+    );
+
+    return result.map((json) => CardEntity.fromJson(json)).toList();
+  }
+
+  // Token
   Future<void> saveToken(String accessToken, String refreshToken) async {
     final db = await instance.database;
 

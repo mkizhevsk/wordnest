@@ -9,6 +9,8 @@ import 'package:logging/logging.dart';
 import 'package:wordnest/utils/event_bus.dart';
 import 'package:wordnest/services/app_initializer.dart';
 import 'package:wordnest/theme/app_colors.dart';
+import 'package:wordnest/model/entity/card.dart';
+import 'package:wordnest/screens/card_search_results.dart';
 
 class CardTab extends StatefulWidget {
   const CardTab({super.key});
@@ -43,6 +45,14 @@ class CardTabState extends State<CardTab> {
     // Listen for SyncCompleteEvent from the EventBus
     eventBus.on<SyncCompleteEvent>().listen((event) {
       _refreshDecksAfterSave(_deckId);
+    });
+
+    // Listen for card selection event
+    eventBus.on<CardSelectedEvent>().listen((event) {
+      setState(() {
+        _cardId = event.cardId;
+      });
+      _loadCardData(_cardId);
     });
   }
 
@@ -102,6 +112,27 @@ class CardTabState extends State<CardTab> {
     }
   }
 
+  Future<void> _loadCardData(int cardId) async {
+    _logger.info('CardTabState: _loadCardData() for cardId $cardId');
+
+    final card = await db.getCard(cardId);
+    if (!mounted) return;
+
+    // Hide the keyboard after the frame has been built
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      FocusScope.of(context).unfocus();
+    });
+
+    _isFrontSide ? null : _turnCard();
+
+    setState(() {
+      _cardId = card.id!;
+      _frontText = card.front!;
+      _backText = card.back!;
+      _exampleText = card.example!;
+    });
+  }
+
   Future<void> _saveSelectedDeckId(int deckId) async {
     await _preferencesService.saveSelectedDeckId(deckId);
   }
@@ -112,9 +143,7 @@ class CardTabState extends State<CardTab> {
     updatedCard.editDateTime = DateTime.now().toUtc();
     await db.updateCardFromForm(updatedCard);
 
-    if (!_isFrontSide) {
-      _turnCard();
-    }
+    _isFrontSide ? null : _turnCard();
 
     setState(() {
       _fetchCardData();
@@ -122,7 +151,6 @@ class CardTabState extends State<CardTab> {
   }
 
   Future<void> _refreshDecksAfterSave(int deckId) async {
-    print("here1234 $deckId");
     _deckId = deckId;
     await _fetchDecks();
     setState(() {
@@ -241,8 +269,8 @@ class CardTabState extends State<CardTab> {
               /**
                * Search row
                */
-              const Padding(
-                padding: EdgeInsets.all(16.0),
+              Padding(
+                padding: const EdgeInsets.all(16.0),
                 child: Center(
                   child: SearchRow(),
                 ),
@@ -393,36 +421,79 @@ class CardTabState extends State<CardTab> {
   }
 }
 
-class SearchRow extends StatelessWidget {
+class SearchRow extends StatefulWidget {
+  const SearchRow({super.key});
+
+  @override
+  SearchRowState createState() => SearchRowState();
+}
+
+class SearchRowState extends State<SearchRow> {
+  final TextEditingController _searchController = TextEditingController();
+  AppDatabase db = AppDatabase.instance;
   static final _logger = Logger('SearchRow');
 
-  const SearchRow({super.key});
+  Future<void> _performSearch(String query) async {
+    try {
+      // Query the database for matching results
+      List<CardEntity> results = await db.search(query, widget.deckId);
+
+      // Log search results (optional)
+      _logger.info('Search results: ${results.length} found');
+
+      // Ensure the widget is still mounted before navigating
+      if (mounted) {
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (context) =>
+                SearchResultsScreen(results: results, deckId: widget.deckId),
+          ),
+        );
+      }
+    } catch (e) {
+      _logger.severe('Error performing search: $e');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.all(8.0),
-      child: Row(
-        children: [
-          Expanded(
-            child: TextField(
-              decoration: const InputDecoration(
-                prefixIcon: Icon(Icons.search),
-                hintText: 'Search...',
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.all(Radius.circular(8.0)),
-                  borderSide: BorderSide.none,
+      child: Container(
+        decoration: BoxDecoration(
+          color: AppColors.searchBackgroundColor, // Shared background color
+          borderRadius: BorderRadius.circular(8.0), // Rounded corners
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              child: TextField(
+                controller: _searchController,
+                decoration: const InputDecoration(
+                  hintText: 'Search...',
+                  border: InputBorder
+                      .none, // Remove borders to blend with container
+                  contentPadding: const EdgeInsets.all(8.0), // Add padding
                 ),
-                filled: true,
-                fillColor: AppColors.searchBackgroundColor,
               ),
-              onChanged: (query) {
-                // Handle the search logic here
-                _logger.info('Search query: $query');
-              },
             ),
-          ),
-        ],
+            IconButton(
+              icon: const Icon(Icons.search),
+              onPressed: () {
+                String query = _searchController.text.trim();
+                if (query.isNotEmpty) {
+                  _performSearch(query);
+                  _searchController.clear();
+                }
+              },
+              color: Colors.black, // Icon color
+              padding: const EdgeInsets.all(
+                  0), // Remove padding for better alignment
+              constraints:
+                  const BoxConstraints(), // Remove constraints to prevent resizing
+            ),
+          ],
+        ),
       ),
     );
   }
